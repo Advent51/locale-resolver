@@ -12,12 +12,10 @@
  * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
- * Copyright (c) 2002-2013 Pentaho Corporation..  All rights reserved.
+ * Copyright (c) 2017 Pentaho Corporation..  All rights reserved.
  */
 
 package org.pentaho.util.locale;
-
-//import org.pentaho.platform.util.logging.Logger;
 
 import org.apache.log4j.Logger;
 
@@ -30,7 +28,9 @@ import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.util.Locale;
 
-public class LocaleHelper {
+public class LocaleResolver {
+
+    private static final Logger logger = Logger.getLogger( LocaleResolver.class );
 
     private static final ThreadLocal<Locale> threadLocales = new ThreadLocal<Locale>();
     private static final ThreadLocal<Locale> threadLocaleOverride = new ThreadLocal<Locale>();
@@ -49,21 +49,21 @@ public class LocaleHelper {
 
     public static final String UTF_8 = "UTF-8"; //$NON-NLS-1$
 
-    private static String encoding = LocaleHelper.UTF_8;
+    private static String encoding = LocaleResolver.UTF_8;
 
     public static final String LEFT_TO_RIGHT = "LTR"; //$NON-NLS-1$
 
-    private static String textDirection = LocaleHelper.LEFT_TO_RIGHT;
+    private static String textDirection = LocaleResolver.LEFT_TO_RIGHT;
 
     public static final String USER_LOCALE_PARAM = "user_locale";
 
     public static void setDefaultLocale( final Locale newLocale ) {
 
-        LocaleHelper.defaultLocale = newLocale;
+        LocaleResolver.defaultLocale = newLocale;
     }
 
     public static Locale getDefaultLocale() {
-        return LocaleHelper.defaultLocale;
+        return LocaleResolver.defaultLocale;
     }
 
     /**
@@ -84,29 +84,29 @@ public class LocaleHelper {
     }
 
     public static void setLocaleOverride( final Locale localeOverride ) {
-        LocaleHelper.threadLocaleOverride.set( localeOverride );
+        LocaleResolver.threadLocaleOverride.set( localeOverride );
     }
 
     public static Locale getLocaleOverride() {
-        return LocaleHelper.threadLocaleOverride.get();
+        return LocaleResolver.threadLocaleOverride.get();
     }
 
     public static void setLocale( final Locale newLocale ) {
-        LocaleHelper.threadLocales.set( newLocale );
+        LocaleResolver.threadLocales.set( newLocale );
     }
 
     public static Locale getLocale() {
-        Locale override = LocaleHelper.threadLocaleOverride.get();
+        Locale override = LocaleResolver.threadLocaleOverride.get();
         if ( override != null ) {
             return override;
         }
-        Locale rtn = LocaleHelper.threadLocales.get();
+        Locale rtn = LocaleResolver.threadLocales.get();
         if ( rtn != null ) {
             return rtn;
         }
-        LocaleHelper.defaultLocale = Locale.getDefault();
-        LocaleHelper.setLocale( LocaleHelper.defaultLocale );
-        return LocaleHelper.defaultLocale;
+        LocaleResolver.defaultLocale = Locale.getDefault();
+        LocaleResolver.setLocale( LocaleResolver.defaultLocale );
+        return LocaleResolver.defaultLocale;
     }
 
     public static void setSystemEncoding( final String encoding ) {
@@ -115,25 +115,24 @@ public class LocaleHelper {
         Charset defaultCharset = Charset.defaultCharset();
 
         if ( platformCharset.compareTo( defaultCharset ) != 0 ) {
-            Logger.warn( LocaleHelper.class.getName(), Messages.getInstance().getString(
-                    "LocaleHelper.WARN_CHARSETS_DONT_MATCH", platformCharset.name(), defaultCharset.name() ) );
+            logger.warn( "WARN_CHARSETS_DONT_MATCH" );
         }
 
-        LocaleHelper.encoding = encoding;
+        LocaleResolver.encoding = encoding;
     }
 
     public static void setTextDirection( final String textDirection ) {
         // TODO make this ThreadLocal
-        LocaleHelper.textDirection = textDirection;
+        LocaleResolver.textDirection = textDirection;
     }
 
     public static String getSystemEncoding() {
-        return LocaleHelper.encoding;
+        return LocaleResolver.encoding;
     }
 
     public static String getTextDirection() {
         // TODO make this ThreadLocal
-        return LocaleHelper.textDirection;
+        return LocaleResolver.textDirection;
     }
 
     /**
@@ -155,7 +154,7 @@ public class LocaleHelper {
      * @return Re-encoded string
      */
     public static String convertEncodedStringToSystemDefaultEncoding( String fromEncoding, String encodedStr ) {
-        return convertStringEncoding( encodedStr, fromEncoding, LocaleHelper.getSystemEncoding() );
+        return convertStringEncoding( encodedStr, fromEncoding, LocaleResolver.getSystemEncoding() );
     }
 
     /**
@@ -236,12 +235,12 @@ public class LocaleHelper {
 
     public static DateFormat getDateFormat( final int dateFormat, final int timeFormat ) {
 
-        if ( ( dateFormat != LocaleHelper.FORMAT_IGNORE ) && ( timeFormat != LocaleHelper.FORMAT_IGNORE ) ) {
-            return DateFormat.getDateTimeInstance( dateFormat, timeFormat, LocaleHelper.getLocale() );
-        } else if ( dateFormat != LocaleHelper.FORMAT_IGNORE ) {
-            return DateFormat.getDateInstance( dateFormat, LocaleHelper.getLocale() );
-        } else if ( timeFormat != LocaleHelper.FORMAT_IGNORE ) {
-            return DateFormat.getTimeInstance( timeFormat, LocaleHelper.getLocale() );
+        if ( ( dateFormat != LocaleResolver.FORMAT_IGNORE ) && ( timeFormat != LocaleResolver.FORMAT_IGNORE ) ) {
+            return DateFormat.getDateTimeInstance( dateFormat, timeFormat, LocaleResolver.getLocale() );
+        } else if ( dateFormat != LocaleResolver.FORMAT_IGNORE ) {
+            return DateFormat.getDateInstance( dateFormat, LocaleResolver.getLocale() );
+        } else if ( timeFormat != LocaleResolver.FORMAT_IGNORE ) {
+            return DateFormat.getTimeInstance( timeFormat, LocaleResolver.getLocale() );
         } else {
             return null;
         }
@@ -250,11 +249,11 @@ public class LocaleHelper {
 
     public static DateFormat getShortDateFormat( final boolean date, final boolean time ) {
         if ( date && time ) {
-            return DateFormat.getDateTimeInstance( DateFormat.SHORT, DateFormat.SHORT, LocaleHelper.getLocale() );
+            return DateFormat.getDateTimeInstance( DateFormat.SHORT, DateFormat.SHORT, LocaleResolver.getLocale() );
         } else if ( date ) {
-            return DateFormat.getDateInstance( DateFormat.SHORT, LocaleHelper.getLocale() );
+            return DateFormat.getDateInstance( DateFormat.SHORT, LocaleResolver.getLocale() );
         } else if ( time ) {
-            return DateFormat.getTimeInstance( DateFormat.SHORT, LocaleHelper.getLocale() );
+            return DateFormat.getTimeInstance( DateFormat.SHORT, LocaleResolver.getLocale() );
         } else {
             return null;
         }
@@ -262,11 +261,11 @@ public class LocaleHelper {
 
     public static DateFormat getMediumDateFormat( final boolean date, final boolean time ) {
         if ( date && time ) {
-            return DateFormat.getDateTimeInstance( DateFormat.MEDIUM, DateFormat.MEDIUM, LocaleHelper.getLocale() );
+            return DateFormat.getDateTimeInstance( DateFormat.MEDIUM, DateFormat.MEDIUM, LocaleResolver.getLocale() );
         } else if ( date ) {
-            return DateFormat.getDateInstance( DateFormat.MEDIUM, LocaleHelper.getLocale() );
+            return DateFormat.getDateInstance( DateFormat.MEDIUM, LocaleResolver.getLocale() );
         } else if ( time ) {
-            return DateFormat.getTimeInstance( DateFormat.MEDIUM, LocaleHelper.getLocale() );
+            return DateFormat.getTimeInstance( DateFormat.MEDIUM, LocaleResolver.getLocale() );
         } else {
             return null;
         }
@@ -274,11 +273,11 @@ public class LocaleHelper {
 
     public static DateFormat getLongDateFormat( final boolean date, final boolean time ) {
         if ( date && time ) {
-            return DateFormat.getDateTimeInstance( DateFormat.LONG, DateFormat.LONG, LocaleHelper.getLocale() );
+            return DateFormat.getDateTimeInstance( DateFormat.LONG, DateFormat.LONG, LocaleResolver.getLocale() );
         } else if ( date ) {
-            return DateFormat.getDateInstance( DateFormat.LONG, LocaleHelper.getLocale() );
+            return DateFormat.getDateInstance( DateFormat.LONG, LocaleResolver.getLocale() );
         } else if ( time ) {
-            return DateFormat.getTimeInstance( DateFormat.LONG, LocaleHelper.getLocale() );
+            return DateFormat.getTimeInstance( DateFormat.LONG, LocaleResolver.getLocale() );
         } else {
             return null;
         }
@@ -286,22 +285,22 @@ public class LocaleHelper {
 
     public static DateFormat getFullDateFormat( final boolean date, final boolean time ) {
         if ( date && time ) {
-            return DateFormat.getDateTimeInstance( DateFormat.FULL, DateFormat.FULL, LocaleHelper.getLocale() );
+            return DateFormat.getDateTimeInstance( DateFormat.FULL, DateFormat.FULL, LocaleResolver.getLocale() );
         } else if ( date ) {
-            return DateFormat.getDateInstance( DateFormat.FULL, LocaleHelper.getLocale() );
+            return DateFormat.getDateInstance( DateFormat.FULL, LocaleResolver.getLocale() );
         } else if ( time ) {
-            return DateFormat.getTimeInstance( DateFormat.FULL, LocaleHelper.getLocale() );
+            return DateFormat.getTimeInstance( DateFormat.FULL, LocaleResolver.getLocale() );
         } else {
             return null;
         }
     }
 
     public static NumberFormat getNumberFormat() {
-        return NumberFormat.getNumberInstance( LocaleHelper.getLocale() );
+        return NumberFormat.getNumberInstance( LocaleResolver.getLocale() );
     }
 
     public static NumberFormat getCurrencyFormat() {
-        return NumberFormat.getCurrencyInstance( LocaleHelper.getLocale() );
+        return NumberFormat.getCurrencyInstance( LocaleResolver.getLocale() );
     }
 
     public static String getClosestLocale( String locale, String[] locales ) {
@@ -339,5 +338,9 @@ public class LocaleHelper {
             locale = locales[0];
         }
         return locale;
+    }
+
+    public static void setLogger( final Logger logger ) {
+
     }
 }
